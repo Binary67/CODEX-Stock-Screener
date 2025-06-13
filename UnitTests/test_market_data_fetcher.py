@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import patch
 import pandas as pd
-from market_data_fetcher import MarketDataFetcher
+from MarketDataFetcher import MarketDataFetcher
 
 
 class TestMarketDataAdapter(unittest.TestCase):

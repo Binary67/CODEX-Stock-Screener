@@ -1,4 +1,4 @@
-from market_data_fetcher import MarketDataFetcher
+from MarketDataFetcher import MarketDataFetcher
 
 
 def main() -> None:
