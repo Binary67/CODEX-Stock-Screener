@@ -1,6 +1,7 @@
 from MarketDataFetcher import MarketDataFetcher
 from IndicatorEngine import IndicatorEngine
 from IndicatorNormalizer import IndicatorNormalizer
+from MomentumEngine import MomentumEngine
 import pandas as pd
 
 
@@ -9,6 +10,7 @@ def main() -> None:
     fetcher = MarketDataFetcher()
     engine = IndicatorEngine()
     normalizer = IndicatorNormalizer()
+    momentum = MomentumEngine()
     try:
         data = fetcher.MarketDataAdapter(tickers)
         rows = []
@@ -24,6 +26,8 @@ def main() -> None:
         df_clean = normalizer.MissingValueHandler(df, method="ffill")
         df_norm = normalizer.ZScoreNormalizer(df_clean)
         print(df_norm)
+        ranks = momentum.MomentumRanker(data, [5])
+        print(ranks)
     except Exception as exc:
         print(f"Failed to fetch data: {exc}")
 
