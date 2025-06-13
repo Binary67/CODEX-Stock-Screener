@@ -3,6 +3,7 @@ from IndicatorEngine import IndicatorEngine
 from IndicatorNormalizer import IndicatorNormalizer
 from MomentumEngine import MomentumEngine
 from ScoringEngine import ScoringEngine
+from PortfolioEngine import PortfolioEngine
 import pandas as pd
 
 
@@ -13,6 +14,7 @@ def main() -> None:
     normalizer = IndicatorNormalizer()
     momentum = MomentumEngine()
     scorer = ScoringEngine()
+    portfolio = PortfolioEngine()
     try:
         data = fetcher.MarketDataAdapter(tickers)
         rows = []
@@ -36,6 +38,12 @@ def main() -> None:
         combined = scorer.ScoreAggregator(weighted, ranks["Lookback_5"], momentum_weight=1.0)
         scaled = scorer.ScoreScaler(combined)
         print(scaled)
+
+        top = portfolio.PortfolioSelector(scaled, 2)
+        alloc = portfolio.AllocationCalculator(top, method="equal")
+        portfolio.PortfolioExporter(top, alloc, "portfolio.csv", "portfolio.json")
+        print(top)
+        print(alloc)
     except Exception as exc:
         print(f"Failed to fetch data: {exc}")
 
