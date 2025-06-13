@@ -2,6 +2,7 @@ from MarketDataFetcher import MarketDataFetcher
 from IndicatorEngine import IndicatorEngine
 from IndicatorNormalizer import IndicatorNormalizer
 from MomentumEngine import MomentumEngine
+from ScoringEngine import ScoringEngine
 import pandas as pd
 
 
@@ -11,6 +12,7 @@ def main() -> None:
     engine = IndicatorEngine()
     normalizer = IndicatorNormalizer()
     momentum = MomentumEngine()
+    scorer = ScoringEngine()
     try:
         data = fetcher.MarketDataAdapter(tickers)
         rows = []
@@ -28,6 +30,12 @@ def main() -> None:
         print(df_norm)
         ranks = momentum.MomentumRanker(data, [5])
         print(ranks)
+
+        weights = {"SMA": 1.0, "EMA": 1.0, "RSI": 1.0, "Volatility": 1.0}
+        weighted = scorer.IndicatorWeighter(df_norm, weights)
+        combined = scorer.ScoreAggregator(weighted, ranks["Lookback_5"], momentum_weight=1.0)
+        scaled = scorer.ScoreScaler(combined)
+        print(scaled)
     except Exception as exc:
         print(f"Failed to fetch data: {exc}")
 
