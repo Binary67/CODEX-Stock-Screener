@@ -120,7 +120,7 @@ def main() -> None:
         hist_alloc = backtester.AllocationFromHistory(tickers)
         interval = config.get("RebalanceIntervalMonths", 0)
         backtest_return = backtester.PortfolioBacktest(hist_alloc, interval)
-        baseline_return = backtester.BuyAndHoldReturn(tickers)
+        baseline_return = backtester.BuyAndHoldReturn(hist_alloc.index)
         if interval:
             message = f"Interval Backtest return: {backtest_return:.2%}"
         else:

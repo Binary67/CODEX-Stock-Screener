@@ -139,14 +139,20 @@ class BacktestingEngine:
 
         return cash / self.initial_cash - 1
 
-    def BuyAndHoldReturn(self, tickers: List[str]) -> float:
-        """Compute buy-and-hold return for equally weighted tickers."""
-        LOGGER.info("Calculating buy-and-hold return for tickers: %s", tickers)
-        if not tickers:
+    def BuyAndHoldReturn(self, Tickers) -> float:
+        """Compute buy-and-hold return for a given set of tickers."""
+        LOGGER.info("Calculating buy-and-hold return for tickers: %s", Tickers)
+        if Tickers is None or len(Tickers) == 0:
             raise ValueError("No tickers provided")
-        weight = 1.0 / len(tickers)
-        allocations = pd.Series(weight, index=tickers)
-        return self.PortfolioBacktest(allocations)
+
+        if isinstance(Tickers, pd.Series):
+            SelectedTickers = list(Tickers.index)
+        else:
+            SelectedTickers = list(Tickers)
+
+        Weight = 1.0 / len(SelectedTickers)
+        Allocations = pd.Series(Weight, index=SelectedTickers)
+        return self.PortfolioBacktest(Allocations)
 
     def IntervalBacktest(self, tickers: List[str], months: int) -> float:
         """Backtest with periodic rebalancing using a month interval."""
