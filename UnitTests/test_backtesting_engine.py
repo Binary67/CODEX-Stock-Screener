@@ -41,6 +41,13 @@ class TestBacktestingEngine(unittest.TestCase):
         self.assertGreater(result, 0)
 
     @patch.object(MarketDataFetcher, "MarketDataAdapter")
+    def test_buy_and_hold_with_allocations(self, mock_adapter):
+        mock_adapter.side_effect = self.fake_adapter
+        alloc = self.engine.AllocationFromHistory(["AAA", "BBB", "CCC"])
+        result = self.engine.BuyAndHoldReturn(alloc.index)
+        self.assertGreater(result, 0)
+
+    @patch.object(MarketDataFetcher, "MarketDataAdapter")
     def test_interval_backtest(self, mock_adapter):
         mock_adapter.side_effect = self.fake_adapter
         result = self.engine.IntervalBacktest(["AAA", "BBB", "CCC"], 1)
