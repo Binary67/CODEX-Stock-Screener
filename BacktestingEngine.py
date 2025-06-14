@@ -57,3 +57,11 @@ class BacktestingEngine:
         if results:
             return sum(results)
         return 0.0
+
+    def BuyAndHoldReturn(self, tickers: List[str]) -> float:
+        """Compute buy-and-hold return for equally weighted tickers."""
+        if not tickers:
+            raise ValueError("No tickers provided")
+        weight = 1.0 / len(tickers)
+        allocations = pd.Series(weight, index=tickers)
+        return self.PortfolioBacktest(allocations)

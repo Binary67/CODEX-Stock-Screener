@@ -76,7 +76,9 @@ def main() -> None:
         backtester = BacktestingEngine(fetcher)
         hist_alloc = backtester.AllocationFromHistory(tickers)
         backtest_return = backtester.PortfolioBacktest(hist_alloc)
+        baseline_return = backtester.BuyAndHoldReturn(tickers)
         print(f"Backtest return: {backtest_return:.2%}")
+        print(f"Buy and Hold return: {baseline_return:.2%}")
     except Exception as exc:
         print(f"Failed to fetch data: {exc}")
 

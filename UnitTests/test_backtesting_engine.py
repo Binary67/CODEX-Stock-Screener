@@ -32,6 +32,12 @@ class TestBacktestingEngine(unittest.TestCase):
         result = self.engine.PortfolioBacktest(alloc)
         self.assertGreater(result, 0)
 
+    @patch.object(MarketDataFetcher, "MarketDataAdapter")
+    def test_buy_and_hold_return(self, mock_adapter):
+        mock_adapter.side_effect = self.fake_adapter
+        result = self.engine.BuyAndHoldReturn(["AAA", "BBB"])
+        self.assertGreater(result, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
