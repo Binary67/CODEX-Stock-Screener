@@ -3,6 +3,7 @@ import pandas as pd
 from unittest.mock import patch
 from BacktestingEngine import BacktestingEngine
 from MarketDataFetcher import MarketDataFetcher
+from PortfolioEngine import PortfolioEngine
 
 
 class TestBacktestingEngine(unittest.TestCase):
@@ -54,6 +55,16 @@ class TestBacktestingEngine(unittest.TestCase):
         alloc = self.engine.AllocationFromHistory(["AAA", "BBB", "CCC"])
         result = self.engine.PortfolioBacktest(alloc, rebalance_months=1)
         self.assertGreater(result, 0)
+
+    @patch.object(MarketDataFetcher, "MarketDataAdapter")
+    @patch.object(PortfolioEngine, "AllocationCalculator")
+    def test_allocation_method_respected(self, mock_alloc_calc, mock_adapter):
+        mock_adapter.side_effect = self.fake_adapter
+        mock_alloc_calc.return_value = pd.Series([1.0], index=["AAA"])
+        engine = BacktestingEngine(self.fetcher, {"AllocationMethod": "equal"})
+        engine.AllocationFromHistory(["AAA", "BBB", "CCC"])
+        _, kwargs = mock_alloc_calc.call_args
+        self.assertEqual(kwargs.get("method"), "equal")
 
 
 if __name__ == "__main__":

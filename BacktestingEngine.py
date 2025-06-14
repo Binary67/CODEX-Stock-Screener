@@ -31,6 +31,7 @@ class BacktestingEngine:
         manager = ConfigManager()
         config_data = config or manager.LoadConfig()
         self.initial_cash = float(config_data.get("InitialCash", 10000))
+        self.allocation_method = config_data.get("AllocationMethod", "equal")
 
     def AllocationFromHistory(self, tickers: List[str]) -> pd.Series:
         """Calculate allocations based on 2020-2023 performance."""
@@ -39,7 +40,10 @@ class BacktestingEngine:
         cumulative = history.pct_change(fill_method=None).add(1).prod() - 1
         top_count = max(int(len(tickers) * 0.3), 1)
         selected = cumulative.sort_values(ascending=False).head(top_count)
-        return self.portfolio.AllocationCalculator(selected, method="score")
+        if self.allocation_method == "volatility":
+            vol_series = history.pct_change(fill_method=None).std().reindex(selected.index)
+            return self.portfolio.AllocationCalculator(vol_series, method="volatility")
+        return self.portfolio.AllocationCalculator(selected, method=self.allocation_method)
 
     def AllocationUntilDate(self, tickers: List[str], end_date: str) -> pd.Series:
         """Calculate allocations using data up to a given end date."""
@@ -48,7 +52,10 @@ class BacktestingEngine:
         cumulative = history.pct_change(fill_method=None).add(1).prod() - 1
         top_count = max(int(len(tickers) * 0.3), 1)
         selected = cumulative.sort_values(ascending=False).head(top_count)
-        return self.portfolio.AllocationCalculator(selected, method="score")
+        if self.allocation_method == "volatility":
+            vol_series = history.pct_change(fill_method=None).std().reindex(selected.index)
+            return self.portfolio.AllocationCalculator(vol_series, method="volatility")
+        return self.portfolio.AllocationCalculator(selected, method=self.allocation_method)
 
     def _RunBacktestForPeriod(
         self,
