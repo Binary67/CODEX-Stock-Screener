@@ -60,9 +60,14 @@ def main() -> None:
 
         TopCount = max(int(len(tickers) * 0.3), 1)
         top = portfolio.PortfolioSelector(scaled, TopCount)
-        alloc = portfolio.AllocationCalculator(
-            top, method=config.get("AllocationMethod", "equal")
-        )
+        allocation_method = config.get("AllocationMethod", "equal")
+        if allocation_method == "volatility":
+            VolatilitySeries = df_clean.loc[top.index, "Volatility"]
+            alloc = portfolio.AllocationCalculator(
+                VolatilitySeries, method="volatility"
+            )
+        else:
+            alloc = portfolio.AllocationCalculator(top, method=allocation_method)
         portfolio.PortfolioExporter(
             top,
             alloc,
