@@ -24,6 +24,31 @@ class TestIndicatorEngine(unittest.TestCase):
         expected_vol = self.data.pct_change(fill_method=None).rolling(3).std().iloc[-1]
         self.assertAlmostEqual(vol.iloc[-1], expected_vol)
 
+    def test_macd_indicator(self):
+        hist = self.engine.MACDIndicator(self.data)
+        ema_short = self.data.ewm(span=12, adjust=False).mean()
+        ema_long = self.data.ewm(span=26, adjust=False).mean()
+        macd = ema_short - ema_long
+        signal = macd.ewm(span=9, adjust=False).mean()
+        expected = macd - signal
+        self.assertAlmostEqual(hist.dropna().iloc[-1], expected.dropna().iloc[-1])
+
+    def test_bollinger_bands_indicator(self):
+        bb = self.engine.BollingerBandsIndicator(self.data, 3)
+        sma = self.data.rolling(3).mean()
+        std = self.data.rolling(3).std()
+        upper = sma + 2 * std
+        lower = sma - 2 * std
+        expected = (self.data - lower) / (upper - lower)
+        self.assertAlmostEqual(bb.dropna().iloc[-1], expected.dropna().iloc[-1])
+
+    def test_adi_indicator(self):
+        adi = self.engine.ADIIndicator(self.data, 3)
+        up = (self.data.diff() > 0).astype(int)
+        down = (self.data.diff() < 0).astype(int)
+        expected = up.rolling(3).sum() - down.rolling(3).sum()
+        self.assertAlmostEqual(adi.dropna().iloc[-1], expected.dropna().iloc[-1])
+
     def test_test_indicators(self):
         self.assertTrue(self.engine.TestIndicators())
 

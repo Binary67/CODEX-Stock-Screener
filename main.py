@@ -36,7 +36,31 @@ def main() -> None:
             vol = engine.VolatilityIndicator(
                 close, config["IndicatorParameters"]["VolatilityWindow"]
             ).dropna().iloc[-1]
-            rows.append({"Ticker": ticker, "SMA": sma, "EMA": ema, "RSI": rsi, "Volatility": vol})
+            macd = engine.MACDIndicator(
+                close,
+                config["IndicatorParameters"]["MACDShort"],
+                config["IndicatorParameters"]["MACDLong"],
+                config["IndicatorParameters"]["MACDSignal"],
+            ).dropna().iloc[-1]
+            bb = engine.BollingerBandsIndicator(
+                close,
+                config["IndicatorParameters"]["BBWindow"],
+                config["IndicatorParameters"]["BBStd"],
+            ).dropna().iloc[-1]
+            adi = engine.ADIIndicator(
+                close,
+                config["IndicatorParameters"]["ADIWindow"],
+            ).dropna().iloc[-1]
+            rows.append({
+                "Ticker": ticker,
+                "SMA": sma,
+                "EMA": ema,
+                "RSI": rsi,
+                "Volatility": vol,
+                "MACD": macd,
+                "BB": bb,
+                "ADI": adi,
+            })
 
         df = pd.DataFrame(rows).set_index("Ticker")
         df_clean = normalizer.MissingValueHandler(df, method="ffill")
