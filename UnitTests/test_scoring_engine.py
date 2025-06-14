@@ -26,7 +26,7 @@ class TestScoringEngine(unittest.TestCase):
         weighted = self.engine.IndicatorWeighter(self.df_norm, self.weights)
         combined = self.engine.ScoreAggregator(weighted, self.momentum, momentum_weight=0.5)
         self.assertAlmostEqual(combined.loc["A"], weighted.loc["A"] - 0.5)
-        self.assertAlmostEqual(combined.loc["B"], weighted.loc["B"] - 1.0)
+        self.assertAlmostEqual(combined.loc["B"], weighted.loc["B"]) 
 
     def test_momentum_weighter(self):
         agg = self.engine.MomentumWeighter(self.momentum_df)
@@ -36,7 +36,9 @@ class TestScoringEngine(unittest.TestCase):
     def test_score_aggregator_dataframe(self):
         weighted = self.engine.IndicatorWeighter(self.df_norm, self.weights)
         combined = self.engine.ScoreAggregator(weighted, self.momentum_df, momentum_weight=0.5)
-        expected = weighted - self.engine.MomentumWeighter(self.momentum_df) * 0.5
+        expected = weighted - self.engine.RankToPercentile(
+            self.engine.MomentumWeighter(self.momentum_df)
+        ) * 0.5
         pd.testing.assert_series_equal(combined, expected)
 
     def test_score_aggregator_with_weights(self):
@@ -48,9 +50,11 @@ class TestScoringEngine(unittest.TestCase):
             momentum_weight=1.0,
             lookback_weights=LookbackWeights,
         )
-        expected = weighted - self.engine.MomentumWeighter(
-            self.momentum_df,
-            LookbackWeights,
+        expected = weighted - self.engine.RankToPercentile(
+            self.engine.MomentumWeighter(
+                self.momentum_df,
+                LookbackWeights,
+            )
         )
         pd.testing.assert_series_equal(combined, expected)
 
@@ -59,6 +63,13 @@ class TestScoringEngine(unittest.TestCase):
         scaled = self.engine.ScoreScaler(series)
         self.assertAlmostEqual(scaled.loc["A"], 0.0)
         self.assertAlmostEqual(scaled.loc["B"], 100.0)
+
+    def test_rank_to_percentile(self):
+        ranks = pd.Series([1, 2, 3], index=["A", "B", "C"])
+        percentiles = self.engine.RankToPercentile(ranks)
+        self.assertAlmostEqual(percentiles.loc["A"], 1.0)
+        self.assertAlmostEqual(percentiles.loc["B"], 0.5)
+        self.assertAlmostEqual(percentiles.loc["C"], 0.0)
 
     def test_test_score_aggregation(self):
         self.assertTrue(self.engine.TestScoreAggregation())
