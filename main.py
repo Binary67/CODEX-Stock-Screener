@@ -8,6 +8,7 @@ from PortfolioEngine import PortfolioEngine
 from BacktestingEngine import BacktestingEngine
 from ConfigManager import ConfigManager
 from LoggingManager import LoggingManager
+from LookbackOptimizer import LookbackOptimizer
 import pandas as pd
 
 LOGGER = logging.getLogger(__name__)
@@ -17,6 +18,9 @@ def main() -> None:
     LoggingManager.SetupLogging()
     manager = ConfigManager()
     config = manager.LoadConfig()
+    optimizer = LookbackOptimizer(manager)
+    best_weights = optimizer.Optimize(n_calls=5)
+    config["LookbackWeights"] = best_weights
     training_end_date = manager.GetTrainingEndDate()
     tickers = config.get("Tickers", [])
     fetcher = MarketDataFetcher()
