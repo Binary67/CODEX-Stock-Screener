@@ -1,0 +1,31 @@
+Tickers:
+  - AAPL
+  - MSFT
+IndicatorParameters:
+  SMAWindow: 5
+  EMAWindow: 5
+  VolatilityWindow: 5
+MomentumLookbacks:
+  - 5
+  - 10
+  - 20
+  - 30
+  - 40
+  - 50
+LookbackWeights:
+  Lookback_5: 1.0
+  Lookback_10: 1.0
+  Lookback_20: 1.0
+  Lookback_30: 1.0
+  Lookback_40: 1.0
+  Lookback_50: 1.0
+IndicatorWeights:
+  SMA: 1.0
+  EMA: 1.0
+  RSI: 1.0
+  Volatility: 1.0
+MomentumWeight: 1.0
+TopN: 2
+AllocationMethod: equal
+CsvPath: portfolio.csv
+JsonPath: portfolio.json
