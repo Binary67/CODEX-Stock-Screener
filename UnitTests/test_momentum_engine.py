@@ -15,16 +15,17 @@ class TestMomentumRanker(unittest.TestCase):
 
     def test_cumulative_return_calculator(self):
         returns = self.engine.CumulativeReturnCalculator(self.data, [1, 5])
-        expected_1 = (self.data.iloc[-1] / self.data.iloc[-2] - 1) * 100
-        expected_5 = (self.data.iloc[-1] / self.data.iloc[0] - 1) * 100
-        self.assertAlmostEqual(returns.loc['AAA', 'Lookback_1'], expected_1['AAA'])
+        self.assertTrue(pd.isna(returns.loc['AAA', 'Lookback_1']))
+        pct_return = self.data.iloc[-1] / self.data.iloc[0] - 1
+        volatility = self.data.pct_change().rolling(5).std().iloc[-1]
+        expected_5 = (pct_return / volatility) * 100
         self.assertAlmostEqual(returns.loc['AAA', 'Lookback_5'], expected_5['AAA'])
 
     def test_momentum_ranker(self):
         ranks = self.engine.MomentumRanker(self.data, [5])
         self.assertEqual(ranks.loc['AAA', 'Lookback_5'], 1)
-        self.assertEqual(ranks.loc['BBB', 'Lookback_5'], 2)
-        self.assertEqual(ranks.loc['CCC', 'Lookback_5'], 3)
+        self.assertEqual(ranks.loc['CCC', 'Lookback_5'], 2)
+        self.assertEqual(ranks.loc['BBB', 'Lookback_5'], 3)
 
     def test_momentum_ranker_multiple(self):
         ranks = self.engine.MomentumRanker(self.data, [1, 5])

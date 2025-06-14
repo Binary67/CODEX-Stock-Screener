@@ -16,7 +16,7 @@ def main() -> None:
     fetcher = MarketDataFetcher()
     engine = IndicatorEngine()
     normalizer = IndicatorNormalizer()
-    momentum = MomentumEngine()
+    momentum_engine = MomentumEngine()
     scorer = ScoringEngine()
     portfolio = PortfolioEngine()
     try:
@@ -43,7 +43,7 @@ def main() -> None:
         df_norm = normalizer.ZScoreNormalizer(df_clean)
         
         lookbacks = config.get("MomentumLookbacks", [])
-        ranks = momentum.MomentumRanker(data, lookbacks)
+        risk_adjusted_ranks = momentum_engine.MomentumRanker(data, lookbacks)
         lookback_weights = config.get(
             "LookbackWeights", {f"Lookback_{lb}": 1.0 for lb in lookbacks}
         )
@@ -52,7 +52,7 @@ def main() -> None:
         weighted = scorer.IndicatorWeighter(df_norm, weights)
         combined = scorer.ScoreAggregator(
             weighted,
-            ranks,
+            risk_adjusted_ranks,
             momentum_weight=config.get("MomentumWeight", 1.0),
             lookback_weights=lookback_weights,
         )
