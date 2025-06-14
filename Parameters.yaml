@@ -25,8 +25,8 @@ IndicatorWeights:
   RSI: 1.0
   Volatility: 1.0
 MomentumWeight: 1.0
-TopN: 2
 AllocationMethod: equal
 CsvPath: portfolio.csv
 JsonPath: portfolio.json
 RebalanceIntervalMonths: 3
+InitialCash: 10000

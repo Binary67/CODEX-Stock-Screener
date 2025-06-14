@@ -58,7 +58,8 @@ def main() -> None:
         )
         scaled = scorer.ScoreScaler(combined)
 
-        top = portfolio.PortfolioSelector(scaled, config.get("TopN", 1))
+        TopCount = max(int(len(tickers) * 0.3), 1)
+        top = portfolio.PortfolioSelector(scaled, TopCount)
         alloc = portfolio.AllocationCalculator(
             top, method=config.get("AllocationMethod", "equal")
         )
@@ -69,7 +70,7 @@ def main() -> None:
             config.get("JsonPath", "portfolio.json"),
         )
 
-        backtester = BacktestingEngine(fetcher)
+        backtester = BacktestingEngine(fetcher, config)
         hist_alloc = backtester.AllocationFromHistory(tickers)
         interval = config.get("RebalanceIntervalMonths", 0)
         backtest_return = backtester.PortfolioBacktest(hist_alloc, interval)
