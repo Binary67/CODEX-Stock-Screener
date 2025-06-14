@@ -1,9 +1,12 @@
+import logging
 import pandas as pd
 from typing import List
 from backtesting import Backtest, Strategy
 from MarketDataFetcher import MarketDataFetcher
 from PortfolioEngine import PortfolioEngine
 from ConfigManager import ConfigManager
+
+LOGGER = logging.getLogger(__name__)
 
 
 class BuyAndHoldStrategy(Strategy):
@@ -32,9 +35,15 @@ class BacktestingEngine:
         config_data = config or manager.LoadConfig()
         self.initial_cash = float(config_data.get("InitialCash", 10000))
         self.allocation_method = config_data.get("AllocationMethod", "equal")
+        LOGGER.info(
+            "BacktestingEngine initialized with initial_cash=%s, allocation_method=%s",
+            self.initial_cash,
+            self.allocation_method,
+        )
 
     def AllocationFromHistory(self, tickers: List[str]) -> pd.Series:
         """Calculate allocations based on 2020-2023 performance."""
+        LOGGER.info("Calculating historical allocation for tickers: %s", tickers)
         data = self.fetcher.MarketDataAdapter(tickers)
         history = data.loc["2020-01-01":"2023-12-31"]
         cumulative = history.pct_change(fill_method=None).add(1).prod() - 1
@@ -47,6 +56,7 @@ class BacktestingEngine:
 
     def AllocationUntilDate(self, tickers: List[str], end_date: str) -> pd.Series:
         """Calculate allocations using data up to a given end date."""
+        LOGGER.info("Calculating allocation until %s for tickers: %s", end_date, tickers)
         data = self.fetcher.MarketDataAdapter(tickers)
         history = data.loc["2020-01-01":end_date]
         cumulative = history.pct_change(fill_method=None).add(1).prod() - 1
@@ -65,6 +75,9 @@ class BacktestingEngine:
         cash: float,
     ) -> tuple[float, list]:
         """Run a single backtest period and return final value and stats."""
+        LOGGER.debug(
+            "Running backtest period from %s to %s with cash=%s", start, end, cash
+        )
         stats_list = []
         final_value = 0.0
         for ticker, weight in allocations.items():
@@ -96,6 +109,9 @@ class BacktestingEngine:
 
     def PortfolioBacktest(self, allocations: pd.Series, rebalance_months: int = 0) -> float:
         """Run backtest for 2024 with optional monthly rebalancing."""
+        LOGGER.info(
+            "Starting portfolio backtest with rebalance_months=%s", rebalance_months
+        )
         start_date = pd.Timestamp("2024-01-01")
         end_date = pd.Timestamp("2024-12-31")
         cash = self.initial_cash
@@ -125,6 +141,7 @@ class BacktestingEngine:
 
     def BuyAndHoldReturn(self, tickers: List[str]) -> float:
         """Compute buy-and-hold return for equally weighted tickers."""
+        LOGGER.info("Calculating buy-and-hold return for tickers: %s", tickers)
         if not tickers:
             raise ValueError("No tickers provided")
         weight = 1.0 / len(tickers)
@@ -133,6 +150,9 @@ class BacktestingEngine:
 
     def IntervalBacktest(self, tickers: List[str], months: int) -> float:
         """Backtest with periodic rebalancing using a month interval."""
+        LOGGER.info(
+            "Running interval backtest for tickers: %s with months=%s", tickers, months
+        )
         if months <= 0:
             raise ValueError("months must be positive")
         allocations = self.AllocationUntilDate(tickers, "2023-12-31")

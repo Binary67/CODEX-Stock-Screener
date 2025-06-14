@@ -1,3 +1,4 @@
+import logging
 from MarketDataFetcher import MarketDataFetcher
 from IndicatorEngine import IndicatorEngine
 from IndicatorNormalizer import IndicatorNormalizer
@@ -6,10 +7,14 @@ from ScoringEngine import ScoringEngine
 from PortfolioEngine import PortfolioEngine
 from BacktestingEngine import BacktestingEngine
 from ConfigManager import ConfigManager
+from LoggingManager import LoggingManager
 import pandas as pd
+
+LOGGER = logging.getLogger(__name__)
 
 
 def main() -> None:
+    LoggingManager.SetupLogging()
     manager = ConfigManager()
     config = manager.LoadConfig()
     tickers = config.get("Tickers", [])
@@ -98,6 +103,10 @@ def main() -> None:
             config.get("CsvPath", "portfolio.csv"),
             config.get("JsonPath", "portfolio.json"),
         )
+        print("Top selections:\n", top)
+        print("Allocations:\n", alloc)
+        LOGGER.info("Top selections:\n%s", top)
+        LOGGER.info("Allocations:\n%s", alloc)
 
         backtester = BacktestingEngine(fetcher, config)
         hist_alloc = backtester.AllocationFromHistory(tickers)
@@ -105,11 +114,15 @@ def main() -> None:
         backtest_return = backtester.PortfolioBacktest(hist_alloc, interval)
         baseline_return = backtester.BuyAndHoldReturn(tickers)
         if interval:
-            print(f"Interval Backtest return: {backtest_return:.2%}")
+            message = f"Interval Backtest return: {backtest_return:.2%}"
         else:
-            print(f"Backtest return: {backtest_return:.2%}")
+            message = f"Backtest return: {backtest_return:.2%}"
+        print(message)
         print(f"Buy and Hold return: {baseline_return:.2%}")
+        LOGGER.info(message)
+        LOGGER.info("Buy and Hold return: %.2f%%", baseline_return * 100)
     except Exception as exc:
+        LOGGER.exception("Failed to fetch data: %s", exc)
         print(f"Failed to fetch data: {exc}")
 
 

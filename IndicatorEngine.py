@@ -1,4 +1,7 @@
+import logging
 import pandas as pd
+
+LOGGER = logging.getLogger(__name__)
 
 
 class IndicatorEngine:
@@ -6,12 +9,14 @@ class IndicatorEngine:
 
     def MovingAverageIndicator(self, data: pd.Series, window: int, exponential: bool = False) -> pd.Series:
         """Return simple or exponential moving average."""
+        LOGGER.debug("Calculating moving average: window=%s, exponential=%s", window, exponential)
         if exponential:
             return data.ewm(span=window, adjust=False).mean()
         return data.rolling(window=window).mean()
 
     def RSI_Indicator(self, data: pd.Series, window: int = 14) -> pd.Series:
         """Compute the Relative Strength Index (RSI)."""
+        LOGGER.debug("Calculating RSI with window=%s", window)
         delta = data.diff()
         gain = delta.clip(lower=0)
         loss = -delta.clip(upper=0)
@@ -23,6 +28,7 @@ class IndicatorEngine:
 
     def VolatilityIndicator(self, data: pd.Series, window: int) -> pd.Series:
         """Return rolling volatility using standard deviation of percentage change."""
+        LOGGER.debug("Calculating volatility with window=%s", window)
         return data.pct_change(fill_method=None).rolling(window=window).std()
 
     def MACDIndicator(
@@ -33,6 +39,12 @@ class IndicatorEngine:
         signal_window: int = 9,
     ) -> pd.Series:
         """Compute the MACD histogram."""
+        LOGGER.debug(
+            "Calculating MACD with short_window=%s, long_window=%s, signal_window=%s",
+            short_window,
+            long_window,
+            signal_window,
+        )
         ema_short = data.ewm(span=short_window, adjust=False).mean()
         ema_long = data.ewm(span=long_window, adjust=False).mean()
         macd = ema_short - ema_long
@@ -44,6 +56,7 @@ class IndicatorEngine:
         self, data: pd.Series, window: int = 20, num_std: int = 2
     ) -> pd.Series:
         """Return Bollinger Bands percent-b indicator."""
+        LOGGER.debug("Calculating Bollinger Bands: window=%s, num_std=%s", window, num_std)
         sma = data.rolling(window=window).mean()
         std = data.rolling(window=window).std()
         upper = sma + num_std * std
@@ -53,6 +66,7 @@ class IndicatorEngine:
 
     def ADIIndicator(self, data: pd.Series, window: int = 14) -> pd.Series:
         """Compute a simple Advance-Decline Indicator."""
+        LOGGER.debug("Calculating ADI with window=%s", window)
         up = (data.diff() > 0).astype(int)
         down = (data.diff() < 0).astype(int)
         adv_dec = up.rolling(window).sum() - down.rolling(window).sum()
