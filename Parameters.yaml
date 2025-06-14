@@ -29,3 +29,4 @@ TopN: 2
 AllocationMethod: equal
 CsvPath: portfolio.csv
 JsonPath: portfolio.json
+RebalanceIntervalMonths: 3

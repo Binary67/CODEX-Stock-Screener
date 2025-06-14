@@ -73,6 +73,10 @@ def main() -> None:
         hist_alloc = backtester.AllocationFromHistory(tickers)
         backtest_return = backtester.PortfolioBacktest(hist_alloc)
         baseline_return = backtester.BuyAndHoldReturn(tickers)
+        interval = config.get("RebalanceIntervalMonths")
+        if interval:
+            dynamic_return = backtester.IntervalBacktest(tickers, interval)
+            print(f"Interval Backtest return: {dynamic_return:.2%}")
         print(f"Backtest return: {backtest_return:.2%}")
         print(f"Buy and Hold return: {baseline_return:.2%}")
     except Exception as exc:
