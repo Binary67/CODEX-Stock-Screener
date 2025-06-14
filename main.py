@@ -4,6 +4,7 @@ from IndicatorNormalizer import IndicatorNormalizer
 from MomentumEngine import MomentumEngine
 from ScoringEngine import ScoringEngine
 from PortfolioEngine import PortfolioEngine
+from BacktestingEngine import BacktestingEngine
 from ConfigManager import ConfigManager
 import pandas as pd
 
@@ -71,6 +72,11 @@ def main() -> None:
         )
         print(top)
         print(alloc)
+
+        backtester = BacktestingEngine(fetcher)
+        hist_alloc = backtester.AllocationFromHistory(tickers)
+        backtest_return = backtester.PortfolioBacktest(hist_alloc)
+        print(f"Backtest return: {backtest_return:.2%}")
     except Exception as exc:
         print(f"Failed to fetch data: {exc}")
 
