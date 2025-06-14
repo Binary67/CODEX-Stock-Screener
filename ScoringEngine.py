@@ -34,6 +34,14 @@ class ScoringEngine:
         weighted = aligned.mul(weight_series, axis=1)
         return weighted.mean(axis=1)
 
+    def RankToPercentile(self, ranks: pd.Series) -> pd.Series:
+        """Convert rank values to percentile scores."""
+        LOGGER.debug("Converting ranks to percentiles")
+        count = len(ranks)
+        if count <= 1:
+            return pd.Series(1.0, index=ranks.index)
+        return 1 - ((ranks - 1) / (count - 1))
+
     def ScoreAggregator(
         self,
         weighted_scores: pd.Series,
@@ -47,7 +55,8 @@ class ScoringEngine:
             momentum_ranks = self.MomentumWeighter(momentum_ranks, lookback_weights)
         if not weighted_scores.index.equals(momentum_ranks.index):
             momentum_ranks = momentum_ranks.reindex(weighted_scores.index)
-        momentum_component = -momentum_ranks * momentum_weight
+        percentiles = self.RankToPercentile(momentum_ranks)
+        momentum_component = -percentiles * momentum_weight
         return weighted_scores + momentum_component
 
     def ScoreScaler(self, scores: pd.Series) -> pd.Series:
