@@ -61,4 +61,4 @@ CsvPath: portfolio.csv
 JsonPath: portfolio.json
 RebalanceIntervalMonths: 3
 TrainingEndDate: '2023-12-31'
-InitialCash: 10000
+InitialCash: 50000
