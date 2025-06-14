@@ -17,6 +17,7 @@ def main() -> None:
     LoggingManager.SetupLogging()
     manager = ConfigManager()
     config = manager.LoadConfig()
+    training_end_date = manager.GetTrainingEndDate()
     tickers = config.get("Tickers", [])
     fetcher = MarketDataFetcher()
     engine = IndicatorEngine()
@@ -26,36 +27,39 @@ def main() -> None:
     portfolio = PortfolioEngine()
     try:
         data = fetcher.MarketDataAdapter(tickers)
+        History = data.loc[:training_end_date]
         rows = []
         for ticker in tickers:
-            close = data[ticker].dropna()
+            close = History[ticker].dropna()
+            if close.empty:
+                continue
             sma = engine.MovingAverageIndicator(
                 close, config["IndicatorParameters"]["SMAWindow"]
-            ).dropna().iloc[-1]
+            ).iloc[-1]
             ema = engine.MovingAverageIndicator(
                 close,
                 config["IndicatorParameters"]["EMAWindow"],
                 exponential=True,
-            ).dropna().iloc[-1]
-            rsi = engine.RSI_Indicator(close).dropna().iloc[-1]
+            ).iloc[-1]
+            rsi = engine.RSI_Indicator(close).iloc[-1]
             vol = engine.VolatilityIndicator(
                 close, config["IndicatorParameters"]["VolatilityWindow"]
-            ).dropna().iloc[-1]
+            ).iloc[-1]
             macd = engine.MACDIndicator(
                 close,
                 config["IndicatorParameters"]["MACDShort"],
                 config["IndicatorParameters"]["MACDLong"],
                 config["IndicatorParameters"]["MACDSignal"],
-            ).dropna().iloc[-1]
+            ).iloc[-1]
             bb = engine.BollingerBandsIndicator(
                 close,
                 config["IndicatorParameters"]["BBWindow"],
                 config["IndicatorParameters"]["BBStd"],
-            ).dropna().iloc[-1]
+            ).iloc[-1]
             adi = engine.ADIIndicator(
                 close,
                 config["IndicatorParameters"]["ADIWindow"],
-            ).dropna().iloc[-1]
+            ).iloc[-1]
             rows.append({
                 "Ticker": ticker,
                 "SMA": sma,
@@ -72,7 +76,7 @@ def main() -> None:
         df_norm = normalizer.ZScoreNormalizer(df_clean)
         
         lookbacks = config.get("MomentumLookbacks", [])
-        risk_adjusted_ranks = momentum_engine.MomentumRanker(data, lookbacks)
+        risk_adjusted_ranks = momentum_engine.MomentumRanker(History, lookbacks)
         lookback_weights = config.get(
             "LookbackWeights", {f"Lookback_{lb}": 1.0 for lb in lookbacks}
         )

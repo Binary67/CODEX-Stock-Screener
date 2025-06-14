@@ -12,3 +12,19 @@ A lightweight Python tool for ranking stocks using several technical indicators.
 ## Data Source
 
 All price data is retrieved from Yahoo Finance via the `yfinance` package.
+
+## Usage
+
+Edit `Parameters.yaml` to configure the screener. A new `TrainingEndDate`
+setting specifies the final date used for indicator calculations and momentum
+ranking. Example:
+
+```yaml
+TrainingEndDate: '2023-12-31'
+```
+
+Run the application:
+
+```bash
+python main.py
+```
