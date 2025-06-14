@@ -36,7 +36,7 @@ class BacktestingEngine:
         """Calculate allocations based on 2020-2023 performance."""
         data = self.fetcher.MarketDataAdapter(tickers)
         history = data.loc["2020-01-01":"2023-12-31"]
-        cumulative = history.pct_change().add(1).prod() - 1
+        cumulative = history.pct_change(fill_method=None).add(1).prod() - 1
         top_count = max(int(len(tickers) * 0.3), 1)
         selected = cumulative.sort_values(ascending=False).head(top_count)
         return self.portfolio.AllocationCalculator(selected, method="score")
@@ -45,7 +45,7 @@ class BacktestingEngine:
         """Calculate allocations using data up to a given end date."""
         data = self.fetcher.MarketDataAdapter(tickers)
         history = data.loc["2020-01-01":end_date]
-        cumulative = history.pct_change().add(1).prod() - 1
+        cumulative = history.pct_change(fill_method=None).add(1).prod() - 1
         top_count = max(int(len(tickers) * 0.3), 1)
         selected = cumulative.sort_values(ascending=False).head(top_count)
         return self.portfolio.AllocationCalculator(selected, method="score")

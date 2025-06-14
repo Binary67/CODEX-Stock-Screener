@@ -29,8 +29,8 @@ class MomentumEngine:
         windows = self.LookbackWindowValidator(lookbacks)
         momentum = pd.DataFrame(index=data.columns)
         for window in windows:
-            pct_return = data.pct_change(periods=window).iloc[-1]
-            volatility = data.pct_change().rolling(window).std().iloc[-1].replace(0, pd.NA)
+            pct_return = data.pct_change(periods=window, fill_method=None).iloc[-1]
+            volatility = data.pct_change(fill_method=None).rolling(window).std().iloc[-1].replace(0, pd.NA)
             risk_adjusted = (pct_return / volatility) * 100
             momentum[f"Lookback_{window}"] = risk_adjusted
         return momentum

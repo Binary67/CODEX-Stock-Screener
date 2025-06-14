@@ -21,7 +21,7 @@ class TestIndicatorEngine(unittest.TestCase):
 
     def test_volatility_indicator(self):
         vol = self.engine.VolatilityIndicator(self.data, 3)
-        expected_vol = self.data.pct_change().rolling(3).std().iloc[-1]
+        expected_vol = self.data.pct_change(fill_method=None).rolling(3).std().iloc[-1]
         self.assertAlmostEqual(vol.iloc[-1], expected_vol)
 
     def test_test_indicators(self):
