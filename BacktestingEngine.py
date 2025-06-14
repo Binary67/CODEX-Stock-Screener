@@ -42,12 +42,19 @@ class BacktestingEngine:
         selected = cumulative.sort_values(ascending=False).head(top_count)
         return self.portfolio.AllocationCalculator(selected, method="score")
 
-    def PortfolioBacktest(self, allocations: pd.Series) -> float:
-        """Run backtest for 2024 based on predetermined allocations."""
-        results = []
+    def _RunBacktestForPeriod(
+        self,
+        allocations: pd.Series,
+        start: pd.Timestamp,
+        end: pd.Timestamp,
+        cash: float,
+    ) -> tuple[float, list]:
+        """Run a single backtest period and return final value and stats."""
+        stats_list = []
+        final_value = 0.0
         for ticker, weight in allocations.items():
             data = self.fetcher.MarketDataAdapter([ticker])
-            trade_data = data.loc["2024-01-01":"2024-12-31"]
+            trade_data = data.loc[start:end]
             if trade_data.empty:
                 continue
             df = pd.DataFrame(
@@ -58,14 +65,48 @@ class BacktestingEngine:
                     "Close": trade_data[ticker],
                 }
             )
-            initial_cash = 10000 * weight
-            backtest = Backtest(df, BuyAndHoldStrategy, cash=initial_cash, trade_on_close=True)
+            initial_cash = cash * weight
+            backtest = Backtest(
+                df,
+                BuyAndHoldStrategy,
+                cash=initial_cash,
+                trade_on_close=True,
+            )
             stats = backtest.run()
-            ret = stats["Equity Final [$]"] / initial_cash - 1
-            results.append(ret * weight)
-        if results:
-            return sum(results)
-        return 0.0
+            stats_list.append(stats)
+            final_value += stats["Equity Final [$]"]
+        if not stats_list:
+            return cash, stats_list
+        return final_value, stats_list
+
+    def PortfolioBacktest(self, allocations: pd.Series, rebalance_months: int = 0) -> float:
+        """Run backtest for 2024 with optional monthly rebalancing."""
+        start_date = pd.Timestamp("2024-01-01")
+        end_date = pd.Timestamp("2024-12-31")
+        cash = 10000.0
+
+        if rebalance_months <= 0:
+            final_value, _ = self._RunBacktestForPeriod(
+                allocations, start_date, end_date, cash
+            )
+            return final_value / cash - 1
+
+        current = start_date
+        current_alloc = allocations
+        while current <= end_date:
+            period_end = current + pd.DateOffset(months=rebalance_months) - pd.Timedelta(days=1)
+            if period_end > end_date:
+                period_end = end_date
+
+            cash, _ = self._RunBacktestForPeriod(current_alloc, current, period_end, cash)
+
+            current = period_end + pd.Timedelta(days=1)
+            if current > end_date:
+                break
+            lookback_end = (current - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+            current_alloc = self.AllocationUntilDate(list(allocations.index), lookback_end)
+
+        return cash / 10000.0 - 1
 
     def BuyAndHoldReturn(self, tickers: List[str]) -> float:
         """Compute buy-and-hold return for equally weighted tickers."""
@@ -79,35 +120,5 @@ class BacktestingEngine:
         """Backtest with periodic rebalancing using a month interval."""
         if months <= 0:
             raise ValueError("months must be positive")
-
-        start_date = pd.Timestamp("2024-01-01")
-        end_date = pd.Timestamp("2024-12-31")
-        current = start_date
-        portfolio_value = 1.0
-
-        while current <= end_date:
-            lookback_end = (current - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
-            allocations = self.AllocationUntilDate(tickers, lookback_end)
-
-            period_end = current + pd.DateOffset(months=months) - pd.Timedelta(days=1)
-            if period_end > end_date:
-                period_end = end_date
-
-            period_returns = []
-            for ticker, weight in allocations.items():
-                data = self.fetcher.MarketDataAdapter([ticker])
-                trade = data.loc[current:period_end]
-                if trade.empty:
-                    continue
-                start_price = trade[ticker].iloc[0]
-                end_price = trade[ticker].iloc[-1]
-                ret = end_price / start_price - 1
-                period_returns.append(ret * weight)
-
-            if period_returns:
-                period_total = sum(period_returns)
-                portfolio_value *= 1 + period_total
-
-            current = period_end + pd.Timedelta(days=1)
-
-        return portfolio_value - 1
+        allocations = self.AllocationUntilDate(tickers, "2023-12-31")
+        return self.PortfolioBacktest(allocations, rebalance_months=months)

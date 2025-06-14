@@ -29,7 +29,7 @@ class TestBacktestingEngine(unittest.TestCase):
         mock_adapter.side_effect = self.fake_adapter
         alloc = self.engine.AllocationFromHistory(["AAA", "BBB", "CCC"])
         self.assertListEqual(list(alloc.index), ["AAA"])
-        result = self.engine.PortfolioBacktest(alloc)
+        result = self.engine.PortfolioBacktest(alloc, rebalance_months=0)
         self.assertGreater(result, 0)
 
     @patch.object(MarketDataFetcher, "MarketDataAdapter")
@@ -42,6 +42,13 @@ class TestBacktestingEngine(unittest.TestCase):
     def test_interval_backtest(self, mock_adapter):
         mock_adapter.side_effect = self.fake_adapter
         result = self.engine.IntervalBacktest(["AAA", "BBB", "CCC"], 1)
+        self.assertGreater(result, 0)
+
+    @patch.object(MarketDataFetcher, "MarketDataAdapter")
+    def test_portfolio_backtest_rebalance(self, mock_adapter):
+        mock_adapter.side_effect = self.fake_adapter
+        alloc = self.engine.AllocationFromHistory(["AAA", "BBB", "CCC"])
+        result = self.engine.PortfolioBacktest(alloc, rebalance_months=1)
         self.assertGreater(result, 0)
 
 
