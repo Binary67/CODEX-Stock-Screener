@@ -27,6 +27,12 @@ IndicatorParameters:
   SMAWindow: 5
   EMAWindow: 5
   VolatilityWindow: 5
+  MACDShort: 12
+  MACDLong: 26
+  MACDSignal: 9
+  BBWindow: 20
+  BBStd: 2
+  ADIWindow: 14
 MomentumLookbacks:
   - 5
   - 10
@@ -46,6 +52,9 @@ IndicatorWeights:
   EMA: 1.0
   RSI: 1.0
   Volatility: 1.0
+  MACD: 1.0
+  BB: 1.0
+  ADI: 1.0
 MomentumWeight: 1.0
 AllocationMethod: volatility
 CsvPath: portfolio.csv
