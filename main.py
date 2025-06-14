@@ -71,13 +71,13 @@ def main() -> None:
 
         backtester = BacktestingEngine(fetcher)
         hist_alloc = backtester.AllocationFromHistory(tickers)
-        backtest_return = backtester.PortfolioBacktest(hist_alloc)
+        interval = config.get("RebalanceIntervalMonths", 0)
+        backtest_return = backtester.PortfolioBacktest(hist_alloc, interval)
         baseline_return = backtester.BuyAndHoldReturn(tickers)
-        interval = config.get("RebalanceIntervalMonths")
         if interval:
-            dynamic_return = backtester.IntervalBacktest(tickers, interval)
-            print(f"Interval Backtest return: {dynamic_return:.2%}")
-        print(f"Backtest return: {backtest_return:.2%}")
+            print(f"Interval Backtest return: {backtest_return:.2%}")
+        else:
+            print(f"Backtest return: {backtest_return:.2%}")
         print(f"Buy and Hold return: {baseline_return:.2%}")
     except Exception as exc:
         print(f"Failed to fetch data: {exc}")
