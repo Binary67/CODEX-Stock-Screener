@@ -1,6 +1,28 @@
 Tickers:
   - AAPL
   - MSFT
+  - RUN
+  - SSL
+  - DAR
+  - BHC
+  - BG
+  - APGE
+  - ZIM
+  - VEON
+  - ACHR
+  - VFC
+  - NEGG
+  - GEO
+  - SATS
+  - CVNA
+  - MTDR
+  - FSLR
+  - MP
+  - MEOH
+  - ONON
+  - NBIS
+  - ACVA
+  - MPWR
 IndicatorParameters:
   SMAWindow: 5
   EMAWindow: 5
