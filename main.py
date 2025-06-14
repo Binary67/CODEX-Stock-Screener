@@ -30,12 +30,19 @@ def main() -> None:
         df_clean = normalizer.MissingValueHandler(df, method="ffill")
         df_norm = normalizer.ZScoreNormalizer(df_clean)
         print(df_norm)
-        ranks = momentum.MomentumRanker(data, [5])
+        lookbacks = [5, 10, 20, 30, 40, 50]
+        ranks = momentum.MomentumRanker(data, lookbacks)
+        LookbackWeights = {f"Lookback_{lb}": 1.0 for lb in lookbacks}
         print(ranks)
 
         weights = {"SMA": 1.0, "EMA": 1.0, "RSI": 1.0, "Volatility": 1.0}
         weighted = scorer.IndicatorWeighter(df_norm, weights)
-        combined = scorer.ScoreAggregator(weighted, ranks["Lookback_5"], momentum_weight=1.0)
+        combined = scorer.ScoreAggregator(
+            weighted,
+            ranks,
+            momentum_weight=1.0,
+            lookback_weights=LookbackWeights,
+        )
         scaled = scorer.ScoreScaler(combined)
         print(scaled)
 

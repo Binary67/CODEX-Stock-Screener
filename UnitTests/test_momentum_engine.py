@@ -26,6 +26,13 @@ class TestMomentumRanker(unittest.TestCase):
         self.assertEqual(ranks.loc['BBB', 'Lookback_5'], 2)
         self.assertEqual(ranks.loc['CCC', 'Lookback_5'], 3)
 
+    def test_momentum_ranker_multiple(self):
+        ranks = self.engine.MomentumRanker(self.data, [1, 5])
+        self.assertIn('Lookback_1', ranks.columns)
+        self.assertIn('Lookback_5', ranks.columns)
+        self.assertEqual(ranks.loc['AAA', 'Lookback_1'], 1)
+        self.assertEqual(ranks.loc['BBB', 'Lookback_1'], 2)
+
 
 if __name__ == '__main__':
     unittest.main()

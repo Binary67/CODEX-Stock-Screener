@@ -17,8 +17,28 @@ class ScoringEngine:
         weighted = aligned.mul(weight_series, axis=1)
         return weighted.sum(axis=1)
 
-    def ScoreAggregator(self, weighted_scores: pd.Series, momentum_ranks: pd.Series, momentum_weight: float = 1.0) -> pd.Series:
+    def MomentumWeighter(self, momentum: pd.DataFrame, weights: Optional[Dict[str, float]] = None) -> pd.Series:
+        """Aggregate momentum ranks across look-back windows."""
+        if weights is None:
+            weights = {col: 1.0 for col in momentum.columns}
+        for key in weights:
+            if key not in momentum.columns:
+                raise KeyError(f"Unknown momentum column: {key}")
+        weight_series = pd.Series(weights)
+        aligned = momentum.reindex(columns=weight_series.index)
+        weighted = aligned.mul(weight_series, axis=1)
+        return weighted.mean(axis=1)
+
+    def ScoreAggregator(
+        self,
+        weighted_scores: pd.Series,
+        momentum_ranks: pd.Series | pd.DataFrame,
+        momentum_weight: float = 1.0,
+        lookback_weights: Optional[Dict[str, float]] = None,
+    ) -> pd.Series:
         """Combine weighted indicator scores with momentum rank scores."""
+        if isinstance(momentum_ranks, pd.DataFrame):
+            momentum_ranks = self.MomentumWeighter(momentum_ranks, lookback_weights)
         if not weighted_scores.index.equals(momentum_ranks.index):
             momentum_ranks = momentum_ranks.reindex(weighted_scores.index)
         momentum_component = -momentum_ranks * momentum_weight
