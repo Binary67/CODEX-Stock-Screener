@@ -25,13 +25,15 @@ class MomentumEngine:
         return sorted(set(validated))
 
     def CumulativeReturnCalculator(self, data: pd.DataFrame, lookbacks: Union[int, List[int]]) -> pd.DataFrame:
-        """Compute cumulative percent returns for each look-back period."""
+        """Compute risk-adjusted momentum for each look-back period."""
         windows = self.LookbackWindowValidator(lookbacks)
-        returns = pd.DataFrame(index=data.columns)
+        momentum = pd.DataFrame(index=data.columns)
         for window in windows:
-            ret = data.pct_change(periods=window).iloc[-1] * 100
-            returns[f"Lookback_{window}"] = ret
-        return returns
+            pct_return = data.pct_change(periods=window).iloc[-1]
+            volatility = data.pct_change().rolling(window).std().iloc[-1].replace(0, pd.NA)
+            risk_adjusted = (pct_return / volatility) * 100
+            momentum[f"Lookback_{window}"] = risk_adjusted
+        return momentum
 
     def MomentumRanker(self, data: pd.DataFrame, lookbacks: Union[int, List[int]]) -> pd.DataFrame:
         """Rank tickers by momentum for each look-back window."""
