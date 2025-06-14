@@ -1,5 +1,8 @@
+import logging
 import pandas as pd
 from typing import Optional
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PortfolioEngine:
@@ -7,6 +10,7 @@ class PortfolioEngine:
 
     def PortfolioSelector(self, scores: pd.Series, top_n: int) -> pd.Series:
         """Return the top N tickers sorted by composite score."""
+        LOGGER.debug("Selecting top %s tickers", top_n)
         if top_n <= 0:
             raise ValueError("top_n must be positive")
         if scores.empty:
@@ -16,6 +20,7 @@ class PortfolioEngine:
 
     def VolatilityAdjustedAllocation(self, volatilities: pd.Series) -> pd.Series:
         """Allocate weights inversely proportional to volatility."""
+        LOGGER.debug("Calculating volatility adjusted allocation")
         if volatilities.empty:
             raise ValueError("No volatility data provided")
         inv_vol = (1 / volatilities.replace(0, pd.NA)).fillna(0)
@@ -25,6 +30,7 @@ class PortfolioEngine:
 
     def AllocationCalculator(self, selected: pd.Series, method: str = "equal") -> pd.Series:
         """Calculate allocations for selected tickers."""
+        LOGGER.info("Calculating allocations using method=%s", method)
         if selected.empty:
             raise ValueError("No tickers selected")
         if method not in ("equal", "score", "volatility"):
@@ -41,6 +47,7 @@ class PortfolioEngine:
 
     def PortfolioExporter(self, selected: pd.Series, allocations: pd.Series, csv_path: str, json_path: str) -> pd.DataFrame:
         """Export portfolio selections to CSV and JSON files."""
+        LOGGER.info("Exporting portfolio to %s and %s", csv_path, json_path)
         df = pd.DataFrame({"Score": selected, "Allocation": allocations})
         df.to_csv(csv_path)
         df.to_json(json_path, orient="records")

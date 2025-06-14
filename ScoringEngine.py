@@ -1,5 +1,8 @@
+import logging
 import pandas as pd
 from typing import Dict, Optional
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ScoringEngine:
@@ -7,6 +10,7 @@ class ScoringEngine:
 
     def IndicatorWeighter(self, normalized: pd.DataFrame, weights: Optional[Dict[str, float]] = None) -> pd.Series:
         """Weight normalized indicators based on provided weights."""
+        LOGGER.debug("Weighting indicators with weights=%s", weights)
         if weights is None:
             weights = {col: 1.0 for col in normalized.columns}
         for key in weights:
@@ -19,6 +23,7 @@ class ScoringEngine:
 
     def MomentumWeighter(self, momentum: pd.DataFrame, weights: Optional[Dict[str, float]] = None) -> pd.Series:
         """Aggregate momentum ranks across look-back windows."""
+        LOGGER.debug("Weighting momentum with weights=%s", weights)
         if weights is None:
             weights = {col: 1.0 for col in momentum.columns}
         for key in weights:
@@ -38,6 +43,7 @@ class ScoringEngine:
     ) -> pd.Series:
         """Combine weighted indicator scores with momentum rank scores."""
         if isinstance(momentum_ranks, pd.DataFrame):
+            LOGGER.debug("Aggregating momentum ranks using DataFrame input")
             momentum_ranks = self.MomentumWeighter(momentum_ranks, lookback_weights)
         if not weighted_scores.index.equals(momentum_ranks.index):
             momentum_ranks = momentum_ranks.reindex(weighted_scores.index)
@@ -46,6 +52,7 @@ class ScoringEngine:
 
     def ScoreScaler(self, scores: pd.Series) -> pd.Series:
         """Scale composite scores to a 0-100 range."""
+        LOGGER.debug("Scaling scores to 0-100 range")
         min_score = scores.min()
         max_score = scores.max()
         if max_score == min_score:

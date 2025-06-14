@@ -1,5 +1,8 @@
+import logging
 import pandas as pd
 from typing import List, Union
+
+LOGGER = logging.getLogger(__name__)
 
 
 class MomentumEngine:
@@ -7,6 +10,7 @@ class MomentumEngine:
 
     def LookbackWindowValidator(self, lookbacks: Union[int, List[int]]) -> List[int]:
         """Validate user look-back periods and return a sorted unique list."""
+        LOGGER.debug("Validating lookbacks: %s", lookbacks)
         if isinstance(lookbacks, int):
             lookbacks = [lookbacks]
         elif isinstance(lookbacks, (list, tuple, set)):
@@ -26,6 +30,7 @@ class MomentumEngine:
 
     def CumulativeReturnCalculator(self, data: pd.DataFrame, lookbacks: Union[int, List[int]]) -> pd.DataFrame:
         """Compute risk-adjusted momentum for each look-back period."""
+        LOGGER.debug("Calculating cumulative returns for lookbacks: %s", lookbacks)
         windows = self.LookbackWindowValidator(lookbacks)
         momentum = pd.DataFrame(index=data.columns)
         for window in windows:
@@ -37,6 +42,7 @@ class MomentumEngine:
 
     def MomentumRanker(self, data: pd.DataFrame, lookbacks: Union[int, List[int]]) -> pd.DataFrame:
         """Rank tickers by momentum for each look-back window."""
+        LOGGER.info("Ranking momentum for lookbacks: %s", lookbacks)
         returns = self.CumulativeReturnCalculator(data, lookbacks)
         ranks = pd.DataFrame(index=returns.index)
         for column in returns.columns:
