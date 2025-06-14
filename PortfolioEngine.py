@@ -14,15 +14,26 @@ class PortfolioEngine:
         sorted_scores = scores.sort_values(ascending=False).dropna()
         return sorted_scores.head(top_n)
 
+    def VolatilityAdjustedAllocation(self, volatilities: pd.Series) -> pd.Series:
+        """Allocate weights inversely proportional to volatility."""
+        if volatilities.empty:
+            raise ValueError("No volatility data provided")
+        inv_vol = (1 / volatilities.replace(0, pd.NA)).fillna(0)
+        if inv_vol.sum() == 0:
+            return pd.Series(1.0 / len(inv_vol), index=inv_vol.index)
+        return inv_vol / inv_vol.sum()
+
     def AllocationCalculator(self, selected: pd.Series, method: str = "equal") -> pd.Series:
         """Calculate allocations for selected tickers."""
         if selected.empty:
             raise ValueError("No tickers selected")
-        if method not in ("equal", "score"):
+        if method not in ("equal", "score", "volatility"):
             raise ValueError("Unknown allocation method")
         if method == "equal":
             weight = 1.0 / len(selected)
             return pd.Series(weight, index=selected.index)
+        if method == "volatility":
+            return self.VolatilityAdjustedAllocation(selected)
         total = selected.sum()
         if total == 0:
             return pd.Series(1.0 / len(selected), index=selected.index)

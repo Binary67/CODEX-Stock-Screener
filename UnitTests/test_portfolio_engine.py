@@ -26,6 +26,18 @@ class TestPortfolioEngine(unittest.TestCase):
         expected = selected / selected.sum()
         pd.testing.assert_series_equal(alloc, expected)
 
+    def test_volatility_adjusted_allocation(self):
+        VolSeries = pd.Series({"AAA": 0.2, "BBB": 0.1, "CCC": 0.4})
+        alloc = self.engine.VolatilityAdjustedAllocation(VolSeries)
+        Expected = (1 / VolSeries) / (1 / VolSeries).sum()
+        pd.testing.assert_series_equal(alloc, Expected)
+
+    def test_allocation_calculator_volatility(self):
+        VolSeries = pd.Series({"AAA": 0.2, "BBB": 0.1})
+        alloc = self.engine.AllocationCalculator(VolSeries, method="volatility")
+        Expected = (1 / VolSeries) / (1 / VolSeries).sum()
+        pd.testing.assert_series_equal(alloc, Expected)
+
     def test_portfolio_exporter(self):
         selected = self.engine.PortfolioSelector(self.scores, 2)
         alloc = self.engine.AllocationCalculator(selected)
