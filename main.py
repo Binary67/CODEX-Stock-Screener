@@ -41,13 +41,12 @@ def main() -> None:
         df = pd.DataFrame(rows).set_index("Ticker")
         df_clean = normalizer.MissingValueHandler(df, method="ffill")
         df_norm = normalizer.ZScoreNormalizer(df_clean)
-        print(df_norm)
+        
         lookbacks = config.get("MomentumLookbacks", [])
         ranks = momentum.MomentumRanker(data, lookbacks)
         lookback_weights = config.get(
             "LookbackWeights", {f"Lookback_{lb}": 1.0 for lb in lookbacks}
         )
-        print(ranks)
 
         weights = config.get("IndicatorWeights", {})
         weighted = scorer.IndicatorWeighter(df_norm, weights)
@@ -58,7 +57,6 @@ def main() -> None:
             lookback_weights=lookback_weights,
         )
         scaled = scorer.ScoreScaler(combined)
-        print(scaled)
 
         top = portfolio.PortfolioSelector(scaled, config.get("TopN", 1))
         alloc = portfolio.AllocationCalculator(
@@ -70,8 +68,6 @@ def main() -> None:
             config.get("CsvPath", "portfolio.csv"),
             config.get("JsonPath", "portfolio.json"),
         )
-        print(top)
-        print(alloc)
 
         backtester = BacktestingEngine(fetcher)
         hist_alloc = backtester.AllocationFromHistory(tickers)
