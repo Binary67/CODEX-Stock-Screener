@@ -17,7 +17,7 @@ class TestMomentumRanker(unittest.TestCase):
         returns = self.engine.CumulativeReturnCalculator(self.data, [1, 5])
         self.assertTrue(pd.isna(returns.loc['AAA', 'Lookback_1']))
         pct_return = self.data.iloc[-1] / self.data.iloc[0] - 1
-        volatility = self.data.pct_change().rolling(5).std().iloc[-1]
+        volatility = self.data.pct_change(fill_method=None).rolling(5).std().iloc[-1]
         expected_5 = (pct_return / volatility) * 100
         self.assertAlmostEqual(returns.loc['AAA', 'Lookback_5'], expected_5['AAA'])
 

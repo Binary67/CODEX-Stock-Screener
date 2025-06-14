@@ -23,7 +23,7 @@ class IndicatorEngine:
 
     def VolatilityIndicator(self, data: pd.Series, window: int) -> pd.Series:
         """Return rolling volatility using standard deviation of percentage change."""
-        return data.pct_change().rolling(window=window).std()
+        return data.pct_change(fill_method=None).rolling(window=window).std()
 
     def TestIndicators(self) -> bool:
         """Validate indicators against known values."""
@@ -31,7 +31,7 @@ class IndicatorEngine:
         sma_expected = sample.rolling(window=3).mean()
         ema_expected = sample.ewm(span=3, adjust=False).mean()
         rsi_expected = self.RSI_Indicator(sample)
-        vol_expected = sample.pct_change().rolling(window=3).std()
+        vol_expected = sample.pct_change(fill_method=None).rolling(window=3).std()
 
         pd.testing.assert_series_equal(self.MovingAverageIndicator(sample, 3), sma_expected)
         pd.testing.assert_series_equal(self.MovingAverageIndicator(sample, 3, exponential=True), ema_expected)
