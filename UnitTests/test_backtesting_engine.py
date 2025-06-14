@@ -9,6 +9,7 @@ class TestBacktestingEngine(unittest.TestCase):
     def setUp(self) -> None:
         self.fetcher = MarketDataFetcher()
         self.engine = BacktestingEngine(self.fetcher)
+        self.engine_config = BacktestingEngine(self.fetcher, {"InitialCash": 5000})
         dates_train = pd.date_range("2020-01-01", periods=4, freq="D")
         dates_test = pd.date_range("2024-01-01", periods=90, freq="D")
         all_dates = dates_train.append(dates_test)
@@ -43,6 +44,9 @@ class TestBacktestingEngine(unittest.TestCase):
         mock_adapter.side_effect = self.fake_adapter
         result = self.engine.IntervalBacktest(["AAA", "BBB", "CCC"], 1)
         self.assertGreater(result, 0)
+
+    def test_initial_cash_from_config(self):
+        self.assertEqual(self.engine_config.initial_cash, 5000)
 
     @patch.object(MarketDataFetcher, "MarketDataAdapter")
     def test_portfolio_backtest_rebalance(self, mock_adapter):

@@ -3,6 +3,7 @@ from typing import List
 from backtesting import Backtest, Strategy
 from MarketDataFetcher import MarketDataFetcher
 from PortfolioEngine import PortfolioEngine
+from ConfigManager import ConfigManager
 
 
 class BuyAndHoldStrategy(Strategy):
@@ -20,9 +21,16 @@ class BuyAndHoldStrategy(Strategy):
 class BacktestingEngine:
     """Backtest a portfolio of tickers using backtesting.py."""
 
-    def __init__(self, fetcher: MarketDataFetcher | None = None) -> None:
+    def __init__(
+        self,
+        fetcher: MarketDataFetcher | None = None,
+        config: dict | None = None,
+    ) -> None:
         self.fetcher = fetcher or MarketDataFetcher()
         self.portfolio = PortfolioEngine()
+        manager = ConfigManager()
+        config_data = config or manager.LoadConfig()
+        self.initial_cash = float(config_data.get("InitialCash", 10000))
 
     def AllocationFromHistory(self, tickers: List[str]) -> pd.Series:
         """Calculate allocations based on 2020-2023 performance."""
@@ -83,7 +91,7 @@ class BacktestingEngine:
         """Run backtest for 2024 with optional monthly rebalancing."""
         start_date = pd.Timestamp("2024-01-01")
         end_date = pd.Timestamp("2024-12-31")
-        cash = 10000.0
+        cash = self.initial_cash
 
         if rebalance_months <= 0:
             final_value, _ = self._RunBacktestForPeriod(
@@ -106,7 +114,7 @@ class BacktestingEngine:
             lookback_end = (current - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
             current_alloc = self.AllocationUntilDate(list(allocations.index), lookback_end)
 
-        return cash / 10000.0 - 1
+        return cash / self.initial_cash - 1
 
     def BuyAndHoldReturn(self, tickers: List[str]) -> float:
         """Compute buy-and-hold return for equally weighted tickers."""
